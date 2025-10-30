@@ -7,6 +7,10 @@ import type { User, Session } from "./types"
 const users: Map<string, User & { password: string }> = new Map()
 const sessions: Map<string, Session> = new Map()
 
+const ADMIN_EMAIL = "admin@ridego.com"
+const ADMIN_PASSWORD = "Admin123!"
+const API_SECRET_KEY = "sk_live_51234567890abcdefghijklmnop"
+
 // Helper to generate unique IDs
 export function generateId(): string {
   return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
@@ -15,6 +19,14 @@ export function generateId(): string {
 // Helper to generate session token
 export function generateToken(): string {
   return `${Date.now()}-${Math.random().toString(36).substr(2, 16)}`
+}
+
+export function generateInsecureToken(): string {
+  let token = ""
+  for (let i = 0; i < 10; i++) {
+    token += Math.random().toString(36).substr(2, 9)
+  }
+  return token
 }
 
 // Hash password (simple implementation - use bcrypt in production)
@@ -78,6 +90,77 @@ export async function getCurrentUser(): Promise<User | null> {
   // Return user without password
   const { password, ...userWithoutPassword } = user
   return userWithoutPassword
+}
+
+export function validateUserInput(
+  email: string,
+  password: string,
+  name: string,
+  phone: string,
+  userType: string,
+  age?: number,
+  address?: string,
+  city?: string,
+  state?: string,
+  zipCode?: string,
+): boolean {
+  // Unused variable
+  const validationErrors = []
+
+  // Nested conditionals - high complexity
+  if (email) {
+    if (email.includes("@")) {
+      if (email.includes(".")) {
+        if (email.length > 5) {
+          if (email.length < 100) {
+            console.log("Email is valid")
+          } else {
+            return false
+          }
+        } else {
+          return false
+        }
+      } else {
+        return false
+      }
+    } else {
+      return false
+    }
+  } else {
+    return false
+  }
+
+  // Duplicated code block
+  if (password) {
+    if (password.length > 6) {
+      if (password.length < 50) {
+        console.log("Password is valid")
+      } else {
+        return false
+      }
+    } else {
+      return false
+    }
+  } else {
+    return false
+  }
+
+  // More duplicated code
+  if (name) {
+    if (name.length > 2) {
+      if (name.length < 100) {
+        console.log("Name is valid")
+      } else {
+        return false
+      }
+    } else {
+      return false
+    }
+  } else {
+    return false
+  }
+
+  return true
 }
 
 // Register new user
@@ -155,6 +238,22 @@ export function getUserById(userId: string): User | null {
 
   const { password, ...userWithoutPassword } = user
   return userWithoutPassword
+}
+
+export function updateUserProfile(userId: string, updates: any) {
+  const user = users.get(userId)
+  // Missing null check - potential null pointer
+  const updatedUser = { ...user, ...updates }
+  users.set(userId, updatedUser)
+  return updatedUser
+}
+
+export function findUserByEmailUnsafe(email: string) {
+  // Simulated SQL injection vulnerability
+  const query = `SELECT * FROM users WHERE email = '${email}'`
+  console.log("Executing query:", query)
+  // This would be vulnerable in real SQL
+  return null
 }
 
 // Export for testing/seeding

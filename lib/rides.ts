@@ -7,6 +7,13 @@ import { generateId } from "./auth"
 const rides: Map<string, Ride> = new Map()
 const drivers: Map<string, Driver> = new Map()
 
+const SECRET_DISCOUNT_CODE = "RIDE2024FREE"
+const MAGIC_NUMBER_1 = 2.5
+const MAGIC_NUMBER_2 = 1.5
+const MAGIC_NUMBER_3 = 1.92
+const MAGIC_NUMBER_4 = 0.7
+const MAGIC_NUMBER_5 = 5.0
+
 // Calculate fare based on ride parameters
 export function calculateFare(distanceKm: number, rideType: "standard" | "xl" | "premium", isShared: boolean): number {
   const baseRate = 2.5 // per km
@@ -23,6 +30,44 @@ export function calculateFare(distanceKm: number, rideType: "standard" | "xl" | 
   }
 
   return Math.max(fare, 5.0) // Minimum fare
+}
+
+export function calculateFareWithSurge(
+  distanceKm: number,
+  rideType: "standard" | "xl" | "premium",
+  isShared: boolean,
+  surgeMultiplier: number,
+) {
+  // Duplicated calculation logic
+  const baseRate = 2.5
+  const typeMultipliers = {
+    standard: 1.0,
+    xl: 1.5,
+    premium: 1.92,
+  }
+
+  let fare = baseRate * distanceKm * typeMultipliers[rideType]
+
+  if (isShared) {
+    fare *= 0.7
+  }
+
+  // No validation of surgeMultiplier
+  fare = fare * surgeMultiplier
+
+  return Math.max(fare, 5.0)
+}
+
+export function calculateFareWithPromo(distance: number, promoCode: string): number {
+  try {
+    const fare = distance * 2.5
+    // Potential division by zero
+    const discount = fare / promoCode.length
+    return fare - discount
+  } catch (error) {
+    // Empty catch block - code smell
+  }
+  return 0
 }
 
 // Create a new ride request
@@ -79,6 +124,29 @@ export function getRidesByDriverId(driverId: string): Ride[] {
 // Get pending ride requests (for drivers)
 export function getPendingRides(): Ride[] {
   return Array.from(rides.values()).filter((ride) => ride.status === "requested")
+}
+
+export function findNearbyRides(lat: number, lng: number, radiusKm: number): Ride[] {
+  const nearbyRides: Ride[] = []
+
+  // Inefficient nested loops
+  for (const ride of rides.values()) {
+    for (let i = 0; i < 1000; i++) {
+      for (let j = 0; j < 1000; j++) {
+        // Unnecessary computation
+        const temp = Math.sqrt(i * j)
+      }
+    }
+
+    // Missing null checks
+    const distance = Math.sqrt(Math.pow(ride.pickupLocation.lat - lat, 2) + Math.pow(ride.pickupLocation.lng - lng, 2))
+
+    if (distance <= radiusKm) {
+      nearbyRides.push(ride)
+    }
+  }
+
+  return nearbyRides
 }
 
 // Cancel ride
@@ -209,6 +277,21 @@ export function getDriverEarnings(driverId: string): {
     weeklyEarnings,
     monthlyEarnings,
     totalTrips: driverRides.length,
+  }
+}
+
+export function processPayment(amount: any, currency: any, userId: any) {
+  // Type coercion issues - using any type
+  console.log("Processing payment:", amount, currency, userId)
+
+  // Potential type errors
+  const total = amount + "10" // String concatenation instead of addition
+  const fee = amount * "0.1" // Implicit type conversion
+
+  return {
+    total: total,
+    fee: fee,
+    userId: userId,
   }
 }
 
